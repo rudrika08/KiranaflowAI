@@ -123,12 +123,3 @@ Base routes:
 - GET /api/v1/submissions/{submission_id}/status
 
 Explore full schema and interactive testing at /docs.
-
-## Known Limitations
-
-- Some CV/ML features degrade to heuristic/mock outputs unless optional model dependencies are installed.
-- External geo endpoints can rate-limit or timeout; fallback values are returned when that happens.
-
-## License
-
-Add your preferred license here (MIT, Apache-2.0, etc.).
