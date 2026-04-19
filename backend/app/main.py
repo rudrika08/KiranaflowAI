@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting Tensor Credit Intelligence API...")
+    logger.info("Starting Kiranaflow AI Credit Intelligence API...")
     await init_db()
     os.makedirs(settings.LOCAL_UPLOAD_DIR, exist_ok=True)
     logger.info("Database initialized. Upload dir ready.")

@@ -1,5 +1,5 @@
 /* ===================================================
-   Tensor Credit Intelligence — Global Design System
+  Kiranaflow AI Credit Intelligence — Global Design System
    =================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -228,6 +228,65 @@ body {
 .stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
 .stat-value { font-size: 28px; font-weight: 800; margin: 6px 0; letter-spacing: -1px; }
 .stat-sub { font-size: 12px; color: var(--text-muted); }
+
+/* ── Dashboard Charts ─────────────────────────────── */
+.dashboard-charts-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chart-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 0% 0%, rgba(79,142,247,0.08), transparent 45%);
+}
+
+.chart-wrap {
+  height: 240px;
+}
+
+.chart-wrap-sm {
+  height: 210px;
+}
+
+.chart-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.chart-legend-row {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
 
 /* ── Buttons ───────────────────────────────────────── */
 .btn {
@@ -554,4 +613,6 @@ body {
   .main-content { margin-left: 0; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .page-body { padding: 20px 16px; }
+  .dashboard-charts-grid { grid-template-columns: 1fr; }
+  .chart-wrap, .chart-wrap-sm { height: 220px; }
 }

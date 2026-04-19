@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, MapPin, Store, Upload } from 'lucide-react'
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+} from 'recharts'
 import { submissionsApi } from '../api/client'
 import type { SubmissionListItem } from '../api/client'
 const STATUS_BADGE: Record<string, string> = {
@@ -26,6 +40,15 @@ const REC_COLOR: Record<string, string> = {
   REJECT: 'var(--accent-red)',
 }
 
+const CHART_COLORS = {
+  blue: '#4f8ef7',
+  violet: '#8b5cf6',
+  teal: '#22d3ee',
+  green: '#10b981',
+  amber: '#f59e0b',
+  red: '#ef4444',
+}
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric',
@@ -49,6 +72,56 @@ export default function Dashboard() {
   const processing = submissions.filter(s => ['processing', 'validating', 'pending'].includes(s.status)).length
   const flagged = submissions.filter(s => s.risk_level && ['high', 'critical'].includes(s.risk_level)).length
   const approved = submissions.filter(s => s.recommendation === 'APPROVE').length
+  const recentSubmissions = submissions.slice(0, 5)
+
+  const riskData = [
+    { name: 'Low', value: submissions.filter(s => s.risk_level === 'low').length, color: CHART_COLORS.green },
+    { name: 'Medium', value: submissions.filter(s => s.risk_level === 'medium').length, color: CHART_COLORS.amber },
+    { name: 'High/Critical', value: submissions.filter(s => ['high', 'critical'].includes(s.risk_level || '')).length, color: CHART_COLORS.red },
+  ].filter(d => d.value > 0)
+
+  const recommendationData = [
+    { name: 'Approve', value: submissions.filter(s => s.recommendation === 'APPROVE').length, color: CHART_COLORS.green },
+    {
+      name: 'Approve + Monitor',
+      value: submissions.filter(s => s.recommendation === 'APPROVE_WITH_MONITORING').length,
+      color: CHART_COLORS.blue,
+    },
+    {
+      name: 'Field Visit',
+      value: submissions.filter(s => s.recommendation === 'REFER_FOR_FIELD_VISIT').length,
+      color: CHART_COLORS.amber,
+    },
+    { name: 'Reject', value: submissions.filter(s => s.recommendation === 'REJECT').length, color: CHART_COLORS.red },
+    { name: 'Pending', value: submissions.filter(s => !s.recommendation).length, color: CHART_COLORS.violet },
+  ]
+
+  const trendData = (() => {
+    const days = 7
+    const now = new Date()
+    const dateSlots: { key: string; label: string; total: number; completed: number; flagged: number }[] = []
+
+    for (let i = days - 1; i >= 0; i -= 1) {
+      const d = new Date(now)
+      d.setDate(now.getDate() - i)
+      const key = d.toISOString().slice(0, 10)
+      const label = d.toLocaleDateString('en-IN', { weekday: 'short' })
+      dateSlots.push({ key, label, total: 0, completed: 0, flagged: 0 })
+    }
+
+    const byDay = new Map(dateSlots.map(slot => [slot.key, slot]))
+
+    submissions.forEach(s => {
+      const key = new Date(s.created_at).toISOString().slice(0, 10)
+      const slot = byDay.get(key)
+      if (!slot) return
+      slot.total += 1
+      if (s.status === 'completed') slot.completed += 1
+      if (['high', 'critical'].includes(s.risk_level || '')) slot.flagged += 1
+    })
+
+    return dateSlots
+  })()
 
   return (
     <div className="fade-in">
@@ -90,6 +163,113 @@ export default function Dashboard() {
               {flagged}
             </div>
             <div className="stat-sub">Requires attention</div>
+          </div>
+        </div>
+
+        <div className="card-title" style={{ marginBottom: 12 }}>Analytics Overview</div>
+
+        <div className="dashboard-charts-grid">
+          <div className="card chart-card">
+            <div className="card-title" style={{ marginBottom: 14 }}>Submission Trend (Last 7 Days)</div>
+            <div className="chart-wrap">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={CHART_COLORS.blue} stopOpacity={0.45} />
+                      <stop offset="100%" stopColor={CHART_COLORS.blue} stopOpacity={0.03} />
+                    </linearGradient>
+                    <linearGradient id="completedGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={CHART_COLORS.teal} stopOpacity={0.35} />
+                      <stop offset="100%" stopColor={CHART_COLORS.teal} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="rgba(79,142,247,0.12)" strokeDasharray="4 4" />
+                  <XAxis dataKey="label" tick={{ fill: '#8896b3', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#8896b3', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <RechartsTooltip
+                    contentStyle={{
+                      background: '#131d35',
+                      border: '1px solid rgba(79,142,247,0.3)',
+                      borderRadius: 10,
+                      color: '#f0f4ff',
+                    }}
+                  />
+                  <Area type="monotone" dataKey="total" stroke={CHART_COLORS.blue} fill="url(#totalGrad)" strokeWidth={2.4} />
+                  <Area type="monotone" dataKey="completed" stroke={CHART_COLORS.teal} fill="url(#completedGrad)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="card chart-card">
+            <div className="card-title" style={{ marginBottom: 14 }}>Risk Distribution</div>
+            <div className="chart-wrap">
+              {riskData.length === 0 ? (
+                <div className="chart-empty">No risk data yet</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={riskData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={95}
+                      innerRadius={52}
+                      paddingAngle={4}
+                    >
+                      {riskData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip
+                      contentStyle={{
+                        background: '#131d35',
+                        border: '1px solid rgba(79,142,247,0.3)',
+                        borderRadius: 10,
+                        color: '#f0f4ff',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+            <div className="chart-legend-row">
+              {riskData.map(item => (
+                <div key={item.name} className="chart-legend-item">
+                  <span className="legend-dot" style={{ background: item.color }} />
+                  <span>{item.name}: {item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="card chart-card" style={{ marginBottom: 28 }}>
+          <div className="card-title" style={{ marginBottom: 14 }}>Recommendation Mix</div>
+          <div className="chart-wrap chart-wrap-sm">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={recommendationData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                <CartesianGrid stroke="rgba(79,142,247,0.12)" strokeDasharray="4 4" />
+                <XAxis dataKey="name" tick={{ fill: '#8896b3', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: '#8896b3', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <RechartsTooltip
+                  contentStyle={{
+                    background: '#131d35',
+                    border: '1px solid rgba(79,142,247,0.3)',
+                    borderRadius: 10,
+                    color: '#f0f4ff',
+                  }}
+                />
+                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                  {recommendationData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -138,7 +318,7 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {submissions.map(s => (
+                  {recentSubmissions.map(s => (
                     <tr
                       key={s.id}
                       style={{ cursor: 'pointer' }}

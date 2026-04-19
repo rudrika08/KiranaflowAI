@@ -3,6 +3,7 @@ import { LayoutDashboard, Upload, FileText } from 'lucide-react'
 import Dashboard from './pages/Dashboard'
 import UploadPage from './pages/UploadPage'
 import SubmissionDetail from './pages/SubmissionDetail'
+import AllSubmissions from './pages/AllSubmissions'
 import './index.css'
 
 export default function App() {
@@ -12,7 +13,7 @@ export default function App() {
         {/* ── Sidebar ── */}
         <aside className="sidebar">
           <div className="sidebar-logo">
-            <h1>⬡ TENSOR</h1>
+            <h1>⬡ KIRANAFLOW AI</h1>
             <p>Credit Intelligence</p>
           </div>
 
@@ -49,7 +50,7 @@ export default function App() {
 
           {/* Version tag */}
           <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border)' }}>
-            <p className="text-xs text-muted">Tensor AI v1.0.0</p>
+            <p className="text-xs text-muted">Kiranaflow AI v1.0.0</p>
             <p className="text-xs text-muted" style={{ marginTop: 2 }}>Kirana Credit Engine</p>
           </div>
         </aside>
@@ -59,7 +60,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/upload" element={<UploadPage />} />
-            <Route path="/submissions" element={<Dashboard />} />
+            <Route path="/submissions" element={<AllSubmissions />} />
             <Route path="/submissions/:id" element={<SubmissionDetail />} />
           </Routes>
         </main>
