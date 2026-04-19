@@ -80,6 +80,7 @@ Minimum useful defaults:
 
 Optional:
 - AWS_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+- GEMINI_API_KEY (for LLM-generated analyst explanations)
 
 Geo stack:
 - OpenStreetMap + Overpass API (no Google Maps key required)
@@ -97,6 +98,8 @@ This repo is currently configured for reliable local demo mode:
 - Core backend/frontend/database are fully functional.
 - If heavy ML packages are unavailable, the system uses fallbacks/mocks for some vision steps and still completes end-to-end.
 - Geo services use free Overpass/OSM paths with fallback defaults on API timeout/rate limit.
+- Explanation generation is best-effort with Gemini when GEMINI_API_KEY is set.
+- If Gemini SDK, model access, or quota is unavailable, the pipeline still completes using a deterministic fallback summary.
 
 ## Common Commands
 
