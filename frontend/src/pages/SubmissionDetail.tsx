@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { MapContainer, Marker, Popup, TileLayer, Circle } from 'react-leaflet'
+import { Icon } from 'leaflet'
 import {
   ArrowLeft, RefreshCw, AlertTriangle, CheckCircle,
   TrendingUp, MapPin, Eye, ShieldAlert, Info
@@ -15,6 +17,15 @@ const REC_COLOR: Record<string, string> = {
   REFER_FOR_FIELD_VISIT: 'var(--accent-amber)',
   REJECT: 'var(--accent-red)',
 }
+
+const storeMarkerIcon = new Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+})
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(n)
@@ -239,6 +250,38 @@ export default function SubmissionDetail() {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="card mb-6">
+          <div className="card-title"><MapPin size={14} style={{ display: 'inline', marginRight: 6 }} />Store Location & Catchment</div>
+          <div className="map-container">
+            <MapContainer
+              center={[data.latitude, data.longitude]}
+              zoom={16}
+              style={{ height: '100%', width: '100%' }}
+              scrollWheelZoom
+            >
+              <TileLayer
+                attribution='&copy; OpenStreetMap contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[data.latitude, data.longitude]} icon={storeMarkerIcon}>
+                <Popup>
+                  <strong>{data.store_name || 'Store Location'}</strong>
+                  <br />
+                  {data.latitude.toFixed(6)}, {data.longitude.toFixed(6)}
+                </Popup>
+              </Marker>
+              <Circle
+                center={[data.latitude, data.longitude]}
+                radius={500}
+                pathOptions={{ color: '#4f8ef7', fillColor: '#4f8ef7', fillOpacity: 0.12 }}
+              />
+            </MapContainer>
+          </div>
+          <div className="text-xs text-muted" style={{ marginTop: 10 }}>
+            Catchment radius: 500m
+          </div>
         </div>
 
         {/* Fraud Assessment */}

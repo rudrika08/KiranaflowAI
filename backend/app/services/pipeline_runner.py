@@ -68,7 +68,7 @@ async def run_full_pipeline(submission_id: str):
             from app.services.output.nlg import generate_explanation
 
             output = build_output(submission, vision_signals, geo_signals, fraud_assessment, cash_flow)
-            explanation = generate_explanation(vision_signals, geo_signals, fraud_assessment, cash_flow)
+            explanation = await generate_explanation(vision_signals, geo_signals, fraud_assessment, cash_flow)
 
             submission.output_json = output
             submission.explanation = explanation

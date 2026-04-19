@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TrendingUp, AlertTriangle, CheckCircle, Clock, ArrowRight, MapPin, Store, Upload } from 'lucide-react'
+import { ArrowRight, MapPin, Store, Upload } from 'lucide-react'
 import { submissionsApi } from '../api/client'
 import type { SubmissionListItem } from '../api/client'
 const STATUS_BADGE: Record<string, string> = {

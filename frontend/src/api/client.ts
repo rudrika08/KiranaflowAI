@@ -110,7 +110,5 @@ export const submissionsApi = {
   get: (id: string) => api.get<SubmissionDetail>(`/api/v1/submissions/${id}`),
   status: (id: string) => api.get(`/api/v1/submissions/${id}/status`),
   create: (formData: FormData) =>
-    api.post<{ id: string; status: string; message: string }>('/api/v1/submissions', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    api.post<{ id: string; status: string; message: string }>('/api/v1/submissions', formData),
 }

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
-import { LayoutDashboard, Upload, FileText, Settings } from 'lucide-react'
+import { LayoutDashboard, Upload, FileText } from 'lucide-react'
 import Dashboard from './pages/Dashboard'
 import UploadPage from './pages/UploadPage'
 import SubmissionDetail from './pages/SubmissionDetail'

@@ -1,11 +1,52 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useNavigate } from 'react-router-dom'
+import { Circle, MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
 import { Upload, X, MapPin, Image, CheckCircle, AlertCircle } from 'lucide-react'
 import { submissionsApi } from '../api/client'
 
 type ImageLabel = 'shelf' | 'counter' | 'exterior' | 'unknown'
 interface ImageFile { file: File; preview: string; label: ImageLabel }
+
+function LocationPicker({ onPick }: { onPick: (lat: number, lon: number) => void }) {
+  useMapEvents({
+    click: (e) => {
+      onPick(e.latlng.lat, e.latlng.lng)
+    },
+  })
+
+  return null
+}
+
+function parseSubmissionError(err: any): string {
+  const detail = err?.response?.data?.detail
+
+  if (typeof detail === 'string' && detail.trim()) {
+    return detail
+  }
+
+  if (Array.isArray(detail) && detail.length > 0) {
+    const first = detail[0]
+    if (first?.msg) {
+      const field = Array.isArray(first?.loc) ? first.loc.join(' -> ') : 'request'
+      return `Validation failed (${field}): ${first.msg}`
+    }
+  }
+
+  if (detail && typeof detail === 'object') {
+    const base = typeof detail.message === 'string' ? detail.message : 'Submission failed.'
+    const rejected = Array.isArray(detail.rejected_reasons)
+      ? detail.rejected_reasons.filter((r: unknown) => typeof r === 'string' && r.trim().length > 0)
+      : []
+
+    if (rejected.length > 0) {
+      return `${base} Rejected: ${rejected.join(' | ')}`
+    }
+    return base
+  }
+
+  return err?.message || 'Submission failed.'
+}
 
 export default function UploadPage() {
   const navigate = useNavigate()
@@ -71,11 +112,14 @@ export default function UploadPage() {
       setSuccess(true)
       setTimeout(() => navigate(`/submissions/${res.data.id}`), 1200)
     } catch (err: any) {
-      setError(err?.response?.data?.detail?.message || 'Submission failed.')
+      setError(parseSubmissionError(err))
     } finally { setSubmitting(false) }
   }
 
   const isReady = images.length >= 3 && lat && lon
+  const hasCoords = Number.isFinite(Number(lat)) && Number.isFinite(Number(lon)) && !!lat && !!lon
+  const mapCenter: [number, number] = hasCoords ? [Number(lat), Number(lon)] : [20.5937, 78.9629]
+  const mapZoom = hasCoords ? 16 : 5
 
   return (
     <div className="fade-in">
@@ -154,6 +198,31 @@ export default function UploadPage() {
                   {gpsLoading ? <div className="spinner" style={{ width: 14, height: 14 }} /> : <MapPin size={14} />}
                   Detect My Location
                 </button>
+
+                <div style={{ marginTop: 12 }}>
+                  <div className="text-xs text-muted" style={{ marginBottom: 8 }}>
+                    Click on map to set coordinates
+                  </div>
+                  <div className="map-container">
+                    <MapContainer center={mapCenter} zoom={mapZoom} style={{ height: '100%', width: '100%' }} scrollWheelZoom>
+                      <TileLayer
+                        attribution='&copy; OpenStreetMap contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <LocationPicker onPick={(pickedLat, pickedLon) => {
+                        setLat(pickedLat.toFixed(6))
+                        setLon(pickedLon.toFixed(6))
+                      }} />
+                      {hasCoords && (
+                        <Circle
+                          center={[Number(lat), Number(lon)]}
+                          radius={90}
+                          pathOptions={{ color: '#4f8ef7', fillColor: '#4f8ef7', fillOpacity: 0.2 }}
+                        />
+                      )}
+                    </MapContainer>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -79,8 +79,10 @@ Minimum useful defaults:
 - LOCAL_UPLOAD_DIR=uploads
 
 Optional:
-- GOOGLE_MAPS_API_KEY
 - AWS_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+
+Geo stack:
+- OpenStreetMap + Overpass API (no Google Maps key required)
 
 ### Frontend
 
